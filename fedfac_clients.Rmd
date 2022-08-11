@@ -1,0 +1,623 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+library(openxlsx)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+
+```
+
+## femnist
+
+```{r}
+
+path = "./femnist/fed/acctest_cnnmnist_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[490:499,i])
+}
+
+path = "./femnist/thrhd-new/threshold90_pnone_l2_covthrhd0.75/acctest_cnnmnist_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[491:500,i])
+}
+
+path = "./femnist/fedprox/mu0.5_pnone_r500/acctest_cnnmnist_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[418:427,i])
+}
+
+path = "./femnist/fedper/acctest_cnnmnist_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[491:500,i])
+}
+
+
+path = "./femnist/fedem/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[491:500,i])
+}
+
+path = "./femnist/lg_1+2/acctest_cnnmnist_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[468:477,i])
+}
+
+plot_data = data.frame(method = rep(c("FedAvg","FedFac","FedProx","FedPer","FedEM", "FedAvg-lg"), each = 100), 
+                       acc = c(a_fed[2:101], a_fac[2:101], a_fedprox[2:101], a_fedper[2:101], a_fedem[2:101], a_lg[2:101])
+                       )
+plot_data$method = factor(plot_data$method, levels = c("FedFac","FedProx","FedEM", "FedAvg","FedAvg-lg", "FedPer"))
+
+
+femnist = ggplot(plot_data, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.8287, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = "FEMNIST") + 
+  #my_theme()
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+```
+
+## cifar10
+
+```{r}
+
+# d0.01
+path = "./cifar/result/resnet/pretrain/d0.01/lg/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[100:109,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.01/fedper/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[319:328,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.01/fedprox/mu0.001_p0.01_r500/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[432:441,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.01/fed/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[314:323,i])
+}
+
+path = "./fedem_result/cifar/dirichlet_0.01_sample0.1/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[487:496,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.01/threshold_full_p0.01_l19+20/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[172:181,i])
+}
+
+plot_data_001 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                       acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+
+plot_data_001$method = factor(plot_data_001$method, levels = c("FedFac", "FedPer", "FedProx", "FedAvg-lg", "FedAvg", "FedEM"))
+
+
+cifar10_d001 = ggplot(plot_data_001, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.9392, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = expression(paste("CIFAR10: ", pi == 0.01))) + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+
+# d0.1--------------------------
+path = "./cifar/result/resnet/pretrain/d0.1/lg/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[88:97,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.1/fedper/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[259:268,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.1/fedprox/mu0.001_p0.1_r500/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[451:460,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.1/fed/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[426:435,i])
+}
+
+path = "./fedem_result/cifar/dirichlet_0.1/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[296:305,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.1/threshold25_p0.1_l19+20_covthrhd0.5_g_ens/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[359:368,i])
+}
+
+plot_data_01 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                           acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+
+plot_data_01$method = factor(plot_data_01$method, levels = c("FedFac","FedProx", "FedAvg", "FedAvg-lg", "FedPer", "FedEM"))
+
+cifar10_d01 = ggplot(plot_data_01, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.84, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = expression(paste("CIFAR10: ", pi == 0.1))) + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+# d0.5 -----------------------------------
+path = "./cifar/result/resnet/pretrain/d0.5/lg/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[88:97,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.5/fedper/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[219:228,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.5/fedprox/mu0.001_p0.5_r500/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[203:212,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.5/fed/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[224:233,i])
+}
+
+path = "./fedem_result/cifar/dirichlet_0.5_sample0.1/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[291:300,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d0.5/thrhd_new/threshold5_p0.5_l20_covthrhd0.85/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[291:300,i])
+}
+
+plot_data_05 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                          acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+
+plot_data_05$method = factor(plot_data_05$method, levels = c("FedFac","FedProx","FedPer", "FedAvg", "FedEM", "FedAvg-lg"))
+
+cifar10_d05 = ggplot(plot_data_05, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.7448, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = expression(paste("CIFAR10: ", pi == 0.5))) + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+# d 1 -----------------------------------
+path = "./cifar/result/resnet/pretrain/d1/lg/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[44:53,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d1/fedper/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[124:133,i])
+}
+
+
+path = "./cifar/result/resnet/pretrain/d1/fedprox/mu0.001_p1.0_r300/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[230:239,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d1/fed/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[166:175,i])
+}
+
+path = "./fedem_result/cifar/dirichlet_1.0_sample0.1/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[264:273,i])
+}
+
+path = "./cifar/result/resnet/pretrain/d1/thrhd_new/threshold5_p1.0_l20_covthrhd0.5/acctest_pre_resnet18_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[206:215,i])
+}
+
+plot_data_1 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                          acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+
+plot_data_1$method = factor(plot_data_1$method, levels = c("FedProx", "FedFac","FedPer",  "FedAvg", "FedEM", "FedAvg-lg"))
+
+
+cifar10_d1 = ggplot(plot_data_1, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.7063, linetype = 3) +
+  scale_fill_manual(values = c("#E7E6E6", "#FFC000", rep("#E7E6E6", 4))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = expression(paste("CIFAR10: ", pi == 1))) + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+
+
+```
+
+## cifar100
+
+```{r}
+
+# n10
+path = "./cifar100/10shards/fed/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[427:436,i])
+}
+
+path = "./cifar100/10shards/fedprox/mu0.01_pshards10_r500/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[462:471,i])
+}
+
+path = "./cifar100/10shards/thrhd_new/threshold_full_pshards10_l15_covthrhd0.5/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[323:332,i])
+}
+
+path = "./cifar100/10shards/fedper/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[218:227,i])
+}
+
+path = "./cifar100/10shards/lg/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[30:39,i])
+}
+
+path = "./cifar100/10shards/fedem/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[468:477,i])
+}
+
+plot_data_n10 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                       acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+plot_data_n10$method = factor(plot_data_n10$method, levels = c("FedAvg", "FedProx", "FedFac", "FedPer", "FedAvg-lg", "FedEM"))
+plot_data_n10$method = factor(plot_data_n10$method, levels = c("FedFac","FedPer", "FedEM","FedProx","FedAvg", "FedAvg-lg"))
+
+cifar100_10 = ggplot(plot_data_n10, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.6886, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = "CIFAR100: S = 10") + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+# n 30 ----------------------------------
+
+path = "./cifar100/30shards/fed/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[490:499,i])
+}
+
+path = "./cifar100/30shards/fedprox/mu0.001_pshards30_r500/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[427:436,i])
+}
+
+path = "./cifar100/30shards/thrhd_new/threshold75_pshards30_l15_covthrhd0.95/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[224:233,i])
+}
+
+path = "./cifar100/30shards/fedper/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[227:236,i])
+}
+
+path = "./cifar100/30shards/lg/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[479:488,i])
+}
+
+path = "./cifar100/30shards/fedem/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[435:444,i])
+}
+
+plot_data_n30 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                       acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+plot_data_n30$method = factor(plot_data_n30$method, levels = c("FedAvg", "FedProx", "FedFac", "FedPer", "FedAvg-lg", "FedEM"))
+plot_data_n30$method = factor(plot_data_n30$method, levels = c("FedFac","FedEM","FedPer", "FedProx","FedAvg", "FedAvg-lg"))
+
+cifar100_30 = ggplot(plot_data_n30, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.6275, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = "CIFAR100: S = 30") + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+# n5 -------------------------------
+
+path = "./cifar100/5shards/fed/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[480:489,i])
+}
+
+path = "./cifar100/5shards/fedprox/mu1.0_pshards5_r500/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[491:500,i])
+}
+
+path = "./cifar100/5shards/threshold-full_l15/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[349:358,i])
+}
+
+path = "./cifar100/5shards/fedper/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[434:443,i])
+}
+
+path = "./cifar100/5shards/lg/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[487:496,i])
+}
+
+path = "./cifar100/5shards/fedem/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[492:501,i])
+}
+
+
+
+plot_data_n5 = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                       acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+plot_data_n5$method = factor(plot_data_n5$method, levels = c("FedAvg", "FedProx", "FedFac", "FedPer", "FedAvg-lg", "FedEM"))
+plot_data_n5$method = factor(plot_data_n5$method, levels = c("FedFac","FedPer","FedAvg-lg","FedEM", "FedProx","FedAvg"))
+
+
+cifar100_5 = ggplot(plot_data_n5, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.7223, linetype = 3) +
+  scale_fill_manual(values = c("#FFC000", rep("#E7E6E6", 5))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = "CIFAR100: S = 5") + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+```
+
+
+## shakespeare
+
+```{r}
+path = "./shakespeare/result/fed/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fed = vector()
+for (i in c(2:ncol(data))){
+  a_fed[i] = mean(data[90:99,i])
+}
+
+path = "./shakespeare/result/fedprox_mu0.5/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedprox = vector()
+for (i in c(2:ncol(data))){
+  a_fedprox[i] = mean(data[91:100,i])
+}
+
+path = "./shakespeare/result/thrhd_new/threshold5_pnone_l4_covthrhd0.75/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fac = vector()
+for (i in c(2:ncol(data))){
+  a_fac[i] = mean(data[91:100,i])
+}
+
+path = "./shakespeare/result/fedper/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedper = vector()
+for (i in c(2:ncol(data))){
+  a_fedper[i] = mean(data[90:99,i])
+}
+
+path = "./shakespeare/result/lg_1234/acctest_vgg16_adam.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_lg = vector()
+for (i in c(2:ncol(data))){
+  a_lg[i] = mean(data[91:100,i])
+}
+
+path = "./shakespeare/result/fedem/acctest.xlsx"
+data <- read.xlsx(xlsxFile = path, sheet = 1, skipEmptyRows = FALSE)
+a_fedem = vector()
+for (i in c(2:ncol(data))){
+  a_fedem[i] = mean(data[91:100,i])
+}
+
+
+plot_data_shake = data.frame(method = rep(c("FedEM","FedFac","FedAvg-lg","FedPer","FedProx","FedAvg"), each = 100), 
+                       acc = c(a_fedem[2:101], a_fac[2:101], a_lg[2:101], a_fedper[2:101], a_fedprox[2:101], a_fed[2:101]))
+plot_data_shake$method = factor(plot_data_shake$method, levels = c("FedPer","FedFac","FedAvg", "FedProx", "FedAvg-lg", "FedEM"))
+
+
+
+shake = ggplot(plot_data_shake, aes(x=method, y=acc, fill = method))+
+  stat_boxplot(geom ="errorbar", width=0.3)+
+  geom_boxplot(outlier.shape =21, outlier.size = 1)+ #D0CECE 
+  geom_hline(yintercept = 0.5014, linetype = 3) +
+  scale_fill_manual(values = c("#E7E6E6", "#FFC000", rep("#E7E6E6", 4))) +
+  guides(fill = "none")+
+  labs(y = "Accuracy (Acc)", title = "Shakespeare") + 
+  theme(
+    panel.background = element_rect(fill = "white", colour = "black", linetype = "solid"),
+    plot.title=element_text(size = 15, hjust=0.5),
+    axis.title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+  )
+
+```
+
+```{r}
+SaveDR <- c("./plot/")
+png(filename = paste0(SaveDR,"client1",".png"), width = 1200, height = 1200)
+
+grid.arrange(cifar10_d001, cifar10_d01, cifar10_d05, cifar10_d1,cifar100_5, cifar100_10, cifar100_30, femnist, shake,  ncol = 3)
+
+dev.off()
+
+
+```

@@ -1,0 +1,14 @@
+tqdm
+copy
+os
+cv2
+scipy
+string
+sklearn
+random
+factor_analyzer
+pandas
+numpy == 1.20.1
+torch == 1.8.0
+matplotlib == 3.3.4
+torchvision
